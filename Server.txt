@@ -1,0 +1,24 @@
+import cv2, socket as sk, numpy as np
+
+cap = cv2.VideoCapture(0)  #0 is for webcam, if you are using any external camera use 1
+s = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
+s.bind((sk.gethostbyname(sk.gethostname()), 1234))  # to bind the IP and Port togather 
+s.listen(10) 
+connection, address = s.accept()
+while True:
+    data = connection.recv(90456)      #data from client to be recieved in 'data'
+    npar = np.fromstring(data, np.uint8)
+    dimg = cv2.imdecode(npar, cv2.IMREAD_COLOR)
+    ret,photo = cap.read()
+    cimg = cv2.resize(photo, (200,150), 3)  #resizing the image
+    if type(dimg) is type(None):
+        pass
+    else:
+        dimg[:150, :200] = cimg
+        cv2.imshow('Server', dimg)    #Display of 'data'
+        if cv2.waitKey(1)== 27:
+            break
+    frame_send = cv2.imencode('.jpg', photo)[1].tobytes()
+    connection.sendall(frame_send)
+cv2.destroyAllWindows()
+cam.release()

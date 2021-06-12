@@ -1,0 +1,25 @@
+import cv2, socket as sk, numpy as np
+s = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
+cap = cv2.VideoCapture('http://192.168.43.1:8080/video')   #IPv4 from mobile-phone
+
+s.connect((sk.gethostbyname(sk.gethostname()), 1234))
+while True:
+    ret, photo = cap.read()
+    photo_new = cv2.resize(photo,(500,500))
+    eimg = cv2.imencode('.jpg', photo_new)[1].tobytes()
+    s.sendall(eimg)
+    
+    data = s.recv(90456)
+    npar = np.fromstring(data, np.uint8)
+    dimg = cv2.imdecode(npar, cv2.IMREAD_COLOR)
+   
+    cimg = cv2.resize(photo, (200,150), 3)
+    if type(dimg) is type(None):
+        pass
+    else:
+        dimg[:150, :200] = cimg
+        cv2.imshow('Client', dimg)
+        if cv2.waitKey(1)== 27:
+            break
+cv2.destroyAllWindows()
+cap.release()
